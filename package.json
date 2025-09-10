@@ -2,6 +2,7 @@
   "name": "memo",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://promo4ka.github.io/localtodoweekly",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -22,8 +23,8 @@
   "scripts": {
     "start": "PORT=50354 react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
+    "gh-pages": "^6.3.0",
     "typescript": "^5.9.2"
   }
 }
