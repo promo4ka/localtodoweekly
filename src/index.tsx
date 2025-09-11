@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { purple } from '@mui/material/colors';
+import { SnackbarProvider } from './SnackbarContext';
 
 const darkTheme = createTheme({
   palette: {
@@ -26,7 +27,9 @@ root.render(
   <React.StrictMode>
      <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <App />
+      <SnackbarProvider>
+        <App />
+      </SnackbarProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

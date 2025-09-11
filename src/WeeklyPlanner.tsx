@@ -5,68 +5,32 @@ import {
   Typography,
   TextField,
   Box,
+  IconButton,
+  Grid,
 } from "@mui/material";
+import { copyTextToBuffer, getWeekRange, loadAllWeeks, WEEKLY_KEY } from "./utils";
+import { useSnackbar } from "./SnackbarContext";
+import { CopyAllRounded } from "@mui/icons-material";
 
-interface WeekData {
+export interface WeekData {
   weekRange: string;
   notes: string;
 }
 
 interface WeeklyPlannerProps {
   nickname: string;
+  update: boolean;
 }
 
-// localStorage key helpers
-const WEEKLY_KEY = (nickname: string, year: number, month: number) =>
-  `${nickname}_weekly_${year}_${String(month + 1).padStart(2, "0")}`;
-
-// Хелпер для вычисления диапазона текущей недели
-function getWeekRange(date: Date): string {
-  const start = new Date(date);
-  const day = start.getDay() || 7; // если воскресенье, то 7
-  start.setDate(date.getDate() - (day - 1));
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-
-  const format = (d: Date) =>
-    d.toLocaleDateString("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  return `${format(start)}-${format(end)} (${date.getFullYear()})`;
-}
-
-function loadAllWeeks(nickname: string): WeekData[] {
-  const allWeeks: WeekData[] = [];
-
-  // Проходим по всем ключам в localStorage
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(`${nickname}_weekly_`)) {
-      const data = JSON.parse(localStorage.getItem(key) || "[]");
-      allWeeks.push(...data);
-    }
-  }
-
-  // Сортируем недели по убыванию даты (по первой дате диапазона)
-  return allWeeks.sort((a, b) => {
-    const parseDate = (range: string) => {
-      const [start] = range.split("-"); // "08.09"
-      const [day, month, year] = start.replace(/[()]/g, "").split(".");
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).getTime();
-    };
-    return parseDate(b.weekRange) - parseDate(a.weekRange);
-  });
-}
-
-
-export default function WeeklyPlanner({ nickname }: WeeklyPlannerProps) {
+export default function WeeklyPlanner({ nickname, update }: WeeklyPlannerProps) {
   const [weeks, setWeeks] = useState<WeekData[]>([]);
   const currentWeek = getWeekRange(new Date());
 
+  const { showSnackbar } = useSnackbar();
+
   useEffect(() => {
     nickname && setWeeks(loadAllWeeks(nickname));
-  }, [nickname]);
+  }, [nickname, update]);
 
   const saveWeeks = (data: WeekData[]) => {
     const now = new Date();
@@ -92,11 +56,23 @@ export default function WeeklyPlanner({ nickname }: WeeklyPlannerProps) {
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6">{currentWeek}</Typography>
+        <Grid container>
+          <Grid size={11}>
+            <Typography variant="caption">{currentWeek}</Typography>
+          </Grid>
+          <Grid size={1} sx={{ justifyContent: "flex-end", display: "flex" }}>
+            <IconButton size="small" onClick={() => {
+              copyTextToBuffer(`#итого #${currentWeek}\n${current.notes}`).then((status) => {
+                showSnackbar(status ? 'Скопированно' : 'Ошибка', status ? "success" : "error")
+              });
+            }}><CopyAllRounded /></IconButton>
+          </Grid>
+        </Grid>
         <TextField
           multiline
           minRows={10}
           fullWidth
+          slotProps={{ htmlInput: { sx: { fontSize: 12 } } }}
           value={current.notes}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Заметки на неделю..."
